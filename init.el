@@ -28,10 +28,11 @@
       frame-title-format nil)
 
 ;;
-;; Editing
+;; Special
 ;;
 
-(setq make-backup-files nil)
+(setq make-backup-files              nil
+      inhibit-compacting-font-caches t)
 
 ;;
 ;; Scroll
@@ -60,9 +61,7 @@
 (require 'dired)
 
 (global-set-key "\M-m" (lambda () (interactive) (dired-jump)))
-
 (eval-after-load "dired" '(require 'dired-x))
-
 (add-hook 'dired-mode-hook (lambda () (dired-omit-mode t)))
 
 ;;
@@ -74,9 +73,7 @@
 (require 'package)
 
 (setq package-enable-at-startup nil)
-
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-
 (package-initialize)
 
 (unless (package-installed-p 'use-package)
@@ -206,8 +203,6 @@
 (defun in-org-dir (file-name)
   (expand-file-name (concat "~/org/" file-name)))
 
-;(add-hook 'org-mode-hook (lambda () (org-bullets-mode t)))
-
 (setq org-directory              (expand-file-name "~/org")
       org-src-fontify-natively   t
       org-src-tab-acts-natively  t
@@ -261,6 +256,12 @@
 
 (org-clock-persistence-insinuate)
 
+(use-package org-superstar
+  :ensure t
+  :config
+  (add-hook 'org-mode-hook (lambda () (org-superstar-mode +1)))
+  (setq org-superstar-special-todo-items t))
+
 (defun home ()     (interactive) (find-file (in-org-dir "home.org")))
 (defun journal ()  (interactive) (find-file (in-org-dir "journal.org")))
 (defun projects () (interactive) (find-file (in-org-dir "projects.org")))
@@ -282,46 +283,13 @@
 (use-package markdown-mode :ensure t :mode   (("\\.md\\'" . gfm-mode)))
 
 ;;
-;; Themes
-;;
-
-(defun fix-color-theme-leuven ()
-  (set-face-foreground 'font-lock-type-face "#276695")
-  (set-face-foreground 'font-lock-constant-face "#276695"))
-
-(defun color-theme-leuven ()
-  (interactive)
-  (load-theme 'leuven)
-  (fix-color-theme-leuven))
-
-(defun fix-color-theme-nord ()
-  (set-background-color "#2d3646")
-  (set-face-foreground 'font-lock-type-face "#81A1C1"))
-
-;(use-package nord-theme :ensure t :config (fix-color-theme-nord))
-
-(defun color-theme-nord ()
-  (interactive)
-  (load-theme 'nord)
-  (fix-color-theme-nord))
-
-;(use-package zenburn-theme :ensure t)
-
-(defun color-theme-zenburn ()
-  (interactive)
-  (setq zenburn-use-variable-pitch      t
-	zenburn-scale-org-headlines     t
-	zenburn-scale-outline-headlines t
-	zenburn-override-colors-alist   '(("zenburn-green+4" . "#7CB8BB")))
-  (load-theme 'zenburn))
-
-;;
 ;; Manage ~/.emacs.d directory structure
 ;;
 
 (defun in-emacs-dir (file-name)
   (expand-file-name (concat user-emacs-directory file-name)))
 
+(load (in-emacs-dir "themes.el"))
 (load (in-emacs-dir "private/all.el"))
 
 (setq custom-file (in-emacs-dir "custom.el"))
