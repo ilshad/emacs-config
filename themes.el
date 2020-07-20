@@ -52,3 +52,9 @@
   (set-face-foreground 'font-lock-constant-face "#0287c8")
   (set-face-bold 'font-lock-constant-face nil)
   (set-face-bold 'font-lock-type-face nil))
+
+;;
+;; Another variation on Plan9
+;;
+
+;(use-package acme-theme :ensure t)

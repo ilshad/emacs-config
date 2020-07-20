@@ -166,9 +166,14 @@
   (setq common-lisp-hyperspec-root
 	"file:///Users/ilshad/Dropbox/HyperSpec-7-0/HyperSpec/")
 
-  (add-hook 'slime-mode           (lambda () (set-variable scroll-margin 10)))
-  (add-hook 'slime-repl-mode-hook (lambda () (smartparens-strict-mode +1)))
-  (add-hook 'lisp-mode-hook       (lambda () (smartparens-strict-mode +1))))
+  (add-hook 'slime-repl-mode-hook
+	    (lambda ()
+	      (setq scroll-margin 10)
+	      (smartparens-strict-mode +1)))
+
+  (add-hook 'lisp-mode-hook
+	    (lambda ()
+	      (smartparens-strict-mode +1))))
 
 (use-package slime-company
   :ensure t
@@ -276,11 +281,27 @@
 ;; Handy packages
 ;;
 
-(use-package try           :ensure t)
-(use-package rainbow-mode  :ensure t)
-(use-package which-key     :ensure t :config (which-key-mode))
-(use-package magit         :ensure t :bind   ([f6] . magit-status))
-(use-package markdown-mode :ensure t :mode   (("\\.md\\'" . gfm-mode)))
+(use-package try             :ensure t)
+(use-package rainbow-mode    :ensure t)
+(use-package which-key       :ensure t :config (which-key-mode))
+(use-package magit           :ensure t :bind   ([f6] . magit-status))
+(use-package elpher          :ensure t)
+
+;;
+;; Various formats
+;;
+
+(use-package bnf-mode        :ensure t)
+(use-package dockerfile-mode :ensure t)
+(use-package markdown-mode   :ensure t :mode (("\\.md\\'" . gfm-view-mode)))
+(use-package yaml-mode       :ensure t :mode (("\\.yml\\'" . yaml-mode)))
+(use-package ttl-mode        :ensure t :mode (("\\.ttl\\'" . ttl-mode)))
+
+;;
+;; Games
+;;
+
+(use-package 2048-game :ensure t)
 
 ;;
 ;; Manage ~/.emacs.d directory structure
