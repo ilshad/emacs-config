@@ -8,5 +8,6 @@ org-clock-save.el
 recentf
 auto-save-list
 elpher-bookmarks
+eww-bookmarks
 hackernews
 url

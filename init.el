@@ -22,7 +22,7 @@
 				(width . 80) (height . 43)))
 
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-(add-to-list 'default-frame-alist '(ns-appearance . light))
+(add-to-list 'default-frame-alist '(ns-appearance . dark))
 
 (setq ns-use-proxy-icon  nil
       frame-title-format nil)
@@ -41,6 +41,13 @@
 (setq scroll-margin                   10
       scroll-conservatively           50
       scroll-preserve-screen-position t)
+
+;;
+;; Utils
+;;
+
+(defun in-emacs-dir (file-name)
+  (expand-file-name (concat user-emacs-directory file-name)))
 
 ;;
 ;; Misc global keys
@@ -74,7 +81,6 @@
 
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-(package-initialize)
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -120,7 +126,7 @@
 (use-package company
   :ensure t
   :config
-  (setq	company-idle-delay                0
+  (setq	company-idle-delay                0.3
 	company-minimum-prefix-length     2
 	company-tooltip-flip-when-above   t
 	company-tooltip-align-annotations t
@@ -197,6 +203,26 @@
   (add-hook 'clojure-mode-hook    'my/clojure-hook)
   (add-hook 'cider-repl-mode-hook 'my/clojure-hook))
 
+(defmacro my/clojure-defn-indents (&rest names)
+  `(progn
+     ,@(mapcar
+	(lambda (name)
+	  `(put-clojure-indent (quote ,name) :defn))
+	names)))
+
+(my/clojure-defn-indents
+ swap! reset!
+ assoc assoc-in update update-in
+ map filter reduce
+
+ ;; Datomic
+ d/transact
+
+ ;; legacy Om stuff
+ render render-state init-state
+ om/set-state! om/update-state!
+ dom/div dom/select)
+
 ;;
 ;; Org Mode
 ;;
@@ -263,19 +289,71 @@
 
 (use-package org-superstar
   :ensure t
-  :config
-  (add-hook 'org-mode-hook (lambda () (org-superstar-mode +1)))
-  (setq org-superstar-special-todo-items t))
+  :custom (org-superstar-special-todo-items t)
+  :init   (add-hook 'org-mode-hook (lambda () (org-superstar-mode +1))))
 
 (defun home ()     (interactive) (find-file (in-org-dir "home.org")))
 (defun journal ()  (interactive) (find-file (in-org-dir "journal.org")))
 (defun projects () (interactive) (find-file (in-org-dir "projects.org")))
 
 ;;
+;; Email
+;;
+
+(add-to-list 'exec-path "/usr/local/bin")
+
+(use-package notmuch
+  :ensure t
+  :bind (:map notmuch-show-mode-map
+	      ("S" . (lambda ()
+		       (interactive)
+		       (notmuch-show-tag (list "+spam" "-inbox")))))
+  :config
+  (setq notmuch-archive-tags        '("-inbox" "-unread" "+archive")
+	notmuch-show-mark-read-tags '("-inbox" "-unread" "+archive")
+	notmuch-search-oldest-first nil
+	notmuch-saved-searches      '((:name "Inbox"
+				       :query "tag:inbox AND tag:unread"
+				       :key "i"
+				       :search-type 'tree)
+				      (:name "Hold On"
+				       :query "tag:hold"
+				       :key "h"
+				       :search-type 'tree)
+				      (:name "Feed"
+				       :query "tag:feed AND tag:unread"
+				       :key "f"
+				       :search-type 'tree)
+				      (:name "Paperwork"
+				       :query "tag:paper"
+				       :key "p"))
+
+	notmuch-hello-sections      '(notmuch-hello-insert-header
+				      notmuch-hello-insert-saved-searches
+				      notmuch-hello-insert-search
+				      notmuch-hello-insert-alltags)
+
+	;; Send mail
+	sendmail-program            (executable-find "msmtp")
+	message-send-mail-function  'message-send-mail-with-sendmail
+	user-mail-address           (notmuch-user-primary-email)
+	user-full-name              (notmuch-user-name)
+	mail-envelope-from          'header
+	mail-specify-envelope-from  t))
+
+;;
 ;; Calendar
 ;;
 
 (setq calendar-week-start-day 1)
+
+;;
+;; IRC
+;;
+
+(setq erc-hide-list '("JOIN" "PART" "QUIT"))
+
+(load (in-emacs-dir "private/erc.el"))
 
 ;;
 ;; Handy packages
@@ -286,6 +364,7 @@
 (use-package which-key       :ensure t :config (which-key-mode))
 (use-package magit           :ensure t :bind   ([f6] . magit-status))
 (use-package elpher          :ensure t)
+(use-package dictionary      :ensure t)
 
 ;;
 ;; Various formats
@@ -307,10 +386,6 @@
 ;; Manage ~/.emacs.d directory structure
 ;;
 
-(defun in-emacs-dir (file-name)
-  (expand-file-name (concat user-emacs-directory file-name)))
-
 (load (in-emacs-dir "themes.el"))
-(load (in-emacs-dir "private/all.el"))
 
 (setq custom-file (in-emacs-dir "custom.el"))
