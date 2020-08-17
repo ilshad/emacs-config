@@ -16,6 +16,7 @@
 (set-fringe-mode 0)
 
 (setq inhibit-startup-message t
+      calendar-week-start-day 1
       split-width-threshold   100
       initial-frame-alist     '((tool-bar-lines . 0)
 				(top . 40) (left . 700)
@@ -69,7 +70,15 @@
 
 (global-set-key "\M-m" (lambda () (interactive) (dired-jump)))
 (eval-after-load "dired" '(require 'dired-x))
-(add-hook 'dired-mode-hook (lambda () (dired-omit-mode t)))
+(put 'dired-find-alternate-file 'disabled nil)
+
+(add-hook 'dired-mode-hook
+	  (lambda () (dired-omit-mode t)))
+
+(add-hook 'dired-mode-hook
+          (lambda ()
+            (define-key dired-mode-map (kbd "^")
+	      (lambda () (interactive) (find-alternate-file "..")))))
 
 ;;
 ;; Package Management
@@ -213,7 +222,8 @@
 (my/clojure-defn-indents
  swap! reset!
  assoc assoc-in update update-in
- map filter reduce
+ map filter reduce reduce-kv interpose
+ partial apply
 
  ;; Datomic
  d/transact
@@ -266,7 +276,7 @@
       org-capture-templates
       '(("j" "Journal" entry
 	 (file+datetree "~/org/journal.org")
-	 "* %? %^g\n %i")
+	 "* %? %^g\n")
 
 	("t" "TODO" entry
 	 (file+headline "~/org/home.org" "Inbox")
@@ -345,15 +355,6 @@
 ;; Calendar
 ;;
 
-(setq calendar-week-start-day 1)
-
-;;
-;; IRC
-;;
-
-(setq erc-hide-list '("JOIN" "PART" "QUIT"))
-
-(load (in-emacs-dir "private/erc.el"))
 
 ;;
 ;; Handy packages
@@ -372,7 +373,7 @@
 
 (use-package bnf-mode        :ensure t)
 (use-package dockerfile-mode :ensure t)
-(use-package markdown-mode   :ensure t :mode (("\\.md\\'" . gfm-view-mode)))
+(use-package markdown-mode   :ensure t :mode (("\\.md\\'"  . gfm-mode)))
 (use-package yaml-mode       :ensure t :mode (("\\.yml\\'" . yaml-mode)))
 (use-package ttl-mode        :ensure t :mode (("\\.ttl\\'" . ttl-mode)))
 
@@ -387,5 +388,7 @@
 ;;
 
 (load (in-emacs-dir "themes.el"))
+(load (in-emacs-dir "private/erc.el"))
+(load (in-emacs-dir "private/elfeed.el"))
 
 (setq custom-file (in-emacs-dir "custom.el"))
