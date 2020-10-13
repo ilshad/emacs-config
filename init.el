@@ -221,12 +221,14 @@
 
 (my/clojure-defn-indents
  swap! reset!
- assoc assoc-in update update-in
+ assoc assoc-in update update-in get-in
  map filter reduce reduce-kv interpose
+ mapv filterv
+ map-indexed
  partial apply
 
  ;; Datomic
- d/transact
+ d/transact d/pull
 
  ;; legacy Om stuff
  render render-state init-state
@@ -280,7 +282,7 @@
 
 	("t" "TODO" entry
 	 (file+headline "~/org/home.org" "Inbox")
-	 "* TODO %? %^g\n %i")
+	 "* TODO %? %^g\n")
 
 	("u" "URL" item
 	 (file+headline "~/org/journal.org" "Links")
@@ -384,9 +386,20 @@
 (use-package 2048-game :ensure t)
 
 ;;
+;; Theming
+;;
+
+(defun fix-lock-face ()
+  (interactive)
+  (set-face-foreground 'font-lock-type-face
+		       (face-foreground 'font-lock-constant-face)))
+
+
+;;
 ;; Manage ~/.emacs.d directory structure
 ;;
 
+(load (in-emacs-dir "utils.el"))
 (load (in-emacs-dir "themes.el"))
 (load (in-emacs-dir "private/erc.el"))
 (load (in-emacs-dir "private/elfeed.el"))

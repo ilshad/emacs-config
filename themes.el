@@ -58,3 +58,12 @@
 ;;
 
 ;(use-package acme-theme :ensure t)
+
+;;
+;; Fix built-in themes
+;;
+
+(defun fix-color-theme-wheatgrass ()
+  (interactive)
+  (set-face-foreground 'font-lock-type-face "#78ded6")
+  (set-face-foreground 'font-lock-constant-face "#78ded6"))
