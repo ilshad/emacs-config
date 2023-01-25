@@ -1,3 +1,8 @@
+.org-id-locations
+games/
+image-dired/
+org-roam.db
+thumbs/
 elpa
 private
 eshell

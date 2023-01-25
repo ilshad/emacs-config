@@ -17,7 +17,7 @@
 
 (setq inhibit-startup-message t
       calendar-week-start-day 1
-      split-width-threshold   100
+      split-width-threshold   110
       initial-frame-alist     '((tool-bar-lines . 0)
 				(top . 40) (left . 700)
 				(width . 80) (height . 43)))
@@ -110,23 +110,27 @@
   (show-smartparens-global-mode +1))
 
 ;;
-;; Helm Framework
+;; Helm
 ;;
 
 (use-package helm
   :ensure t
   :bind (("M-x"     . helm-M-x)
+	 ("C-x i"   . helm-imenu)
 	 ("C-x C-f" . helm-find-files)
 	 ("C-x b"   . helm-mini)
 	 ("C-x C-b" . helm-buffers-list))
-  :config (setq helm-ff-keep-cached-candidates      nil
-		helm-split-window-inside-p            t
-		helm-buffers-fuzzy-matching           t
-		helm-move-to-line-cycle-in-source     t
-		helm-ff-search-library-in-sexp        t
-		helm-ff-file-name-history-use-recentf t
-		helm-ff-skip-boring-files             t
-		helm-allow-mouse                      t))
+  :config
+  (setq helm-ff-keep-cached-candidates      nil
+	helm-split-window-inside-p            t
+	helm-buffers-fuzzy-matching           t
+	helm-move-to-line-cycle-in-source     t
+	helm-ff-search-library-in-sexp        t
+	helm-ff-file-name-history-use-recentf t
+	helm-ff-skip-boring-files             t
+	helm-allow-mouse                      t
+	helm-buffers-truncate-lines           t)
+  (helm-mode 1))
 
 ;;
 ;; Company
@@ -156,9 +160,10 @@
 (define-key emacs-lisp-mode-map (kbd "C-c C-c") 'eval-defun)
 (define-key emacs-lisp-mode-map (kbd "C-c C-b") 'eval-buffer)
 
-(add-hook 'emacs-lisp-mode-hook (lambda ()
-				  (eldoc-mode +1)
-				  (smartparens-strict-mode +1)))
+(add-hook 'emacs-lisp-mode-hook
+	  (lambda ()
+	    (eldoc-mode +1)
+	    (smartparens-strict-mode +1)))
 
 ;;
 ;; Common Lisp
@@ -221,11 +226,11 @@
 
 (my/clojure-defn-indents
  swap! reset!
- assoc assoc-in update update-in get-in
+ assoc assoc-in update update-in get-in dissoc
  map filter reduce reduce-kv interpose
  mapv filterv
- map-indexed
- partial apply
+ map-indexed mapcat
+ partial apply into repeatedly
 
  ;; Datomic
  d/transact d/pull
@@ -252,6 +257,7 @@
       org-goto-auto-isearch      nil
       org-link-frame-setup       '((file . find-file))
       org-blank-before-new-entry '((heading . auto) (plain-list-itme . auto))
+      org-startup-folded         t
 
       org-enforce-todo-dependencies     t
       org-fast-tag-selection-single-key t
@@ -264,11 +270,6 @@
       ;; Clock
       org-clock-persist     'history
       org-clock-into-drawer 't
-
-      ;; Agenda
-      org-agenda-files (mapcar 'in-org-dir (list "home.org"
-						 "projects.org"
-						 "journal.org"))
 
       org-agenda-todo-list-sublevels nil
       org-refile-targets     '((org-agenda-files . (:maxlevel . 1)))
@@ -293,7 +294,7 @@
 	 "[[%^{URL}]]")))
 
 (global-set-key "\C-ca" 'org-agenda)
-(global-set-key "\C-cb" 'org-iswitchb)
+(global-set-key "\C-cb" 'org-switchb)
 (global-set-key "\C-cc" 'org-capture)
 (global-set-key "\C-cl" 'org-store-link)
 
@@ -304,9 +305,41 @@
   :custom (org-superstar-special-todo-items t)
   :init   (add-hook 'org-mode-hook (lambda () (org-superstar-mode +1))))
 
-(defun home ()     (interactive) (find-file (in-org-dir "home.org")))
-(defun journal ()  (interactive) (find-file (in-org-dir "journal.org")))
-(defun projects () (interactive) (find-file (in-org-dir "projects.org")))
+(defun home ()        (interactive) (find-file (in-org-dir "home.org")))
+(defun journal ()     (interactive) (find-file (in-org-dir "journal.org")))
+(defun projects ()    (interactive) (find-file (in-org-dir "projects.org")))
+(defun investments () (interactive) (find-file (in-org-dir "investments.org")))
+
+(use-package org-roam
+  :ensure t
+  :init (setq org-roam-v2-ack t)
+  :custom
+  (org-roam-directory (file-truename "~/org/roam"))
+  (org-roam-completion-everywhere t)
+  (org-roam-capture-templates
+   '(("d" "default" plain "%?"
+      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+			 "#+title: ${title}\n")
+      :unnarrowed t)
+     ("p" "project" plain
+      (file "~/org/roam/templates/project.org")
+      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+			 "#+title: ${title}\n#+filetags: project")
+      :unnarrowed t)))
+  (org-roam-node-display-template "${title:60} ${tags}")
+  :bind (("C-c n f" . org-roam-node-find)
+	 ("C-c n i" . org-roam-node-insert)
+	 ("C-c n l" . org-roam-buffer-toggle)
+	 :map org-mode-map
+	 ("C-M-i" . completion-at-point)
+	 :map org-roam-dailies-map
+	 ("T" . org-roam-dailies-capture-tomorrow))
+  :bind-keymap
+  ("C-c n d" . org-roam-dailies-map)
+  :config
+  (org-roam-setup)
+  (org-roam-db-autosync-mode)
+  (require 'org-roam-dailies))
 
 ;;
 ;; Email
@@ -354,18 +387,23 @@
 	mail-specify-envelope-from  t))
 
 ;;
-;; Calendar
+;; Magit
 ;;
 
+(use-package magit
+  :ensure t
+  :bind ([f6] . magit-status)
+  :config
+  (setq magit-display-buffer-function (lambda (buffer)
+					(display-buffer buffer '(display-buffer-same-window))))
 
-;;
-;; Handy packages
-;;
+  ;;
+  ;; Handy packages
+  ;;
 
-(use-package try             :ensure t)
+  (use-package try             :ensure t))
 (use-package rainbow-mode    :ensure t)
 (use-package which-key       :ensure t :config (which-key-mode))
-(use-package magit           :ensure t :bind   ([f6] . magit-status))
 (use-package elpher          :ensure t)
 (use-package dictionary      :ensure t)
 
@@ -395,13 +433,23 @@
 		       (face-foreground 'font-lock-constant-face)))
 
 
+(use-package doom-modeline
+  :ensure t
+  :hook (after-init . doom-modeline-mode))
+
 ;;
 ;; Manage ~/.emacs.d directory structure
 ;;
 
-(load (in-emacs-dir "utils.el"))
+(load (in-emacs-dir "tools.el"))
 (load (in-emacs-dir "themes.el"))
 (load (in-emacs-dir "private/erc.el"))
 (load (in-emacs-dir "private/elfeed.el"))
 
 (setq custom-file (in-emacs-dir "custom.el"))
+
+;;
+;; xQuartz
+;;
+
+(setenv "DISPLAY" "localhost")
