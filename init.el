@@ -395,13 +395,13 @@
   :bind ([f6] . magit-status)
   :config
   (setq magit-display-buffer-function (lambda (buffer)
-					(display-buffer buffer '(display-buffer-same-window))))
+					(display-buffer buffer '(display-buffer-same-window)))))
 
-  ;;
-  ;; Handy packages
-  ;;
+;;
+;; Handy packages
+;;
 
-  (use-package try             :ensure t))
+(use-package try             :ensure t)
 (use-package rainbow-mode    :ensure t)
 (use-package which-key       :ensure t :config (which-key-mode))
 (use-package elpher          :ensure t)
