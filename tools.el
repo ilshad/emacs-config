@@ -19,7 +19,7 @@
 		    ((numberp (cdr alpha)) (cdr alpha))
 		    ((numberp (cadr alpha)) (cadr alpha)))
 	      100)
-	 '(90 . 60) '(100 . 100)))))
+	 '(80 . 60) '(100 . 100)))))
 
 (defun reset-frame ()
   (interactive)
@@ -45,9 +45,20 @@
       (set-frame-size nil 168 73))
 
      ;; Laptop
-     ((= width 1440)
-      (set-frame-position nil 700 40)
-      (set-frame-size nil 80 43)))))
+     ((= width 1680)
+      (set-frame-position nil 860 47)
+      (set-frame-size nil 80 (if menu-bar-mode 44 45)))
+
+     ;; Laptop
+     ((= width 1920)
+      ;(set-frame-position nil 960 50)
+      (set-frame-position nil 965 20)
+      (set-frame-size nil 85 (if menu-bar-mode 46 47)))
+
+     ;; Laptop
+     ((= width 2240)
+      (set-frame-position nil 1100 50)
+      (set-frame-size nil 80 (if menu-bar-mode 45 46))))))
 
 ;;
 ;; Investments

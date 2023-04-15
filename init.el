@@ -1,15 +1,8 @@
 ;;
-;; MacOS / keyboard essentials
-;;
-
-(setq mac-command-modifier 'meta
-      mac-option-modifier  'control)
-
-;;
 ;; UI
 ;;
 
-(set-default-font "Menlo 15")
+(menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (blink-cursor-mode -1)
@@ -17,16 +10,35 @@
 
 (setq inhibit-startup-message t
       calendar-week-start-day 1
-      split-width-threshold   110
-      initial-frame-alist     '((tool-bar-lines . 0)
-				(top . 40) (left . 700)
-				(width . 80) (height . 43)))
+      split-width-threshold   110)
 
-(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-(add-to-list 'default-frame-alist '(ns-appearance . dark))
+(let ((width (display-pixel-width)))
+  (cond
+   ((= width 1920)
+    (setq initial-frame-alist
+	  '((tool-bar-lines . 0)
+	    ;(top . 50) (left . 960)
+	    (top . 20) (left . 965)
+	    (width . 85) (height . 47)))
+    (add-to-list 'default-frame-alist
+		 '(font . "DejaVu Sans Mono-14")))
+
+   ((= width 2240)
+    (setq initial-frame-alist
+	  '((tool-bar-lines . 0)
+	    (top . 50) (left . 1100)
+	    (width . 80) (height . 45)))
+    (add-to-list 'default-frame-alist
+		 '(font . "DejaVu Sans Mono-17")))))
+
+;(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+;(add-to-list 'default-frame-alist '(ns-appearance . dark))
 
 (setq ns-use-proxy-icon  nil
       frame-title-format nil)
+
+(setq visible-bell       t
+      ring-bell-function 'ignore)
 
 ;;
 ;; Special
@@ -43,6 +55,9 @@
       scroll-conservatively           50
       scroll-preserve-screen-position t)
 
+;(global-set-key (kbd "M-n") 'scroll-up-line)
+;(global-set-key (kbd "M-p") 'scroll-down-line)
+
 ;;
 ;; Utils
 ;;
@@ -54,9 +69,8 @@
 ;; Misc global keys
 ;;
 
-(global-set-key "\M-`" 'toggle-frame-fullscreen)
-(global-set-key "\C-q" 'kill-buffer)
-(global-set-key "\M-'" 'eshell)
+(global-set-key (kbd "C-q") 'kill-buffer)
+(global-set-key (kbd "M-'") 'eshell)
 
 (require 'windmove)
 
@@ -68,7 +82,7 @@
 
 (require 'dired)
 
-(global-set-key "\M-m" (lambda () (interactive) (dired-jump)))
+(global-set-key (kbd "M-m") (lambda () (interactive) (dired-jump)))
 (eval-after-load "dired" '(require 'dired-x))
 (put 'dired-find-alternate-file 'disabled nil)
 
@@ -171,7 +185,7 @@
 
 (use-package slime
   :ensure t
-  :init (load (expand-file-name "~/quicklisp/slime-helper.el"))
+  ;:init (load (expand-file-name "~/quicklisp/slime-helper.el"))
   :config
   (setq slime-lisp-implementations
 	'((sbcl ("/usr/local/bin/sbcl") :coding-system utf-8-unix)))
@@ -183,8 +197,7 @@
 	slime-complete-symbol-function  'slime-fuzzy-complete-symbol
 	slime-fuzzy-completion-in-place t)
 
-  (setq common-lisp-hyperspec-root
-	"file:///Users/ilshad/Dropbox/HyperSpec-7-0/HyperSpec/")
+  (setq common-lisp-hyperspec-root "file:///home/ilshad/Read/HyperSpec-7-0/HyperSpec/")
 
   (add-hook 'slime-repl-mode-hook
 	    (lambda ()
@@ -345,46 +358,46 @@
 ;; Email
 ;;
 
-(add-to-list 'exec-path "/usr/local/bin")
+;(add-to-list 'exec-path "/usr/local/bin")
 
-(use-package notmuch
-  :ensure t
-  :bind (:map notmuch-show-mode-map
-	      ("S" . (lambda ()
-		       (interactive)
-		       (notmuch-show-tag (list "+spam" "-inbox")))))
-  :config
-  (setq notmuch-archive-tags        '("-inbox" "-unread" "+archive")
-	notmuch-show-mark-read-tags '("-inbox" "-unread" "+archive")
-	notmuch-search-oldest-first nil
-	notmuch-saved-searches      '((:name "Inbox"
-				       :query "tag:inbox AND tag:unread"
-				       :key "i"
-				       :search-type 'tree)
-				      (:name "Hold On"
-				       :query "tag:hold"
-				       :key "h"
-				       :search-type 'tree)
-				      (:name "Feed"
-				       :query "tag:feed AND tag:unread"
-				       :key "f"
-				       :search-type 'tree)
-				      (:name "Paperwork"
-				       :query "tag:paper"
-				       :key "p"))
+;; (use-package notmuch
+;;   :ensure t
+;;   :bind (:map notmuch-show-mode-map
+;; 	      ("S" . (lambda ()
+;; 		       (interactive)
+;; 		       (notmuch-show-tag (list "+spam" "-inbox")))))
+;;   :config
+;;   (setq notmuch-archive-tags        '("-inbox" "-unread" "+archive")
+;; 	notmuch-show-mark-read-tags '("-inbox" "-unread" "+archive")
+;; 	notmuch-search-oldest-first nil
+;; 	notmuch-saved-searches      '((:name "Inbox"
+;; 				       :query "tag:inbox AND tag:unread"
+;; 				       :key "i"
+;; 				       :search-type 'tree)
+;; 				      (:name "Hold On"
+;; 				       :query "tag:hold"
+;; 				       :key "h"
+;; 				       :search-type 'tree)
+;; 				      (:name "Feed"
+;; 				       :query "tag:feed AND tag:unread"
+;; 				       :key "f"
+;; 				       :search-type 'tree)
+;; 				      (:name "Paperwork"
+;; 				       :query "tag:paper"
+;; 				       :key "p"))
 
-	notmuch-hello-sections      '(notmuch-hello-insert-header
-				      notmuch-hello-insert-saved-searches
-				      notmuch-hello-insert-search
-				      notmuch-hello-insert-alltags)
+;; 	notmuch-hello-sections      '(notmuch-hello-insert-header
+;; 				      notmuch-hello-insert-saved-searches
+;; 				      notmuch-hello-insert-search
+;; 				      notmuch-hello-insert-alltags)
 
-	;; Send mail
-	sendmail-program            (executable-find "msmtp")
-	message-send-mail-function  'message-send-mail-with-sendmail
-	user-mail-address           (notmuch-user-primary-email)
-	user-full-name              (notmuch-user-name)
-	mail-envelope-from          'header
-	mail-specify-envelope-from  t))
+;; 	;; Send mail
+;; 	sendmail-program            (executable-find "msmtp")
+;; 	message-send-mail-function  'message-send-mail-with-sendmail
+;; 	user-mail-address           (notmuch-user-primary-email)
+;; 	user-full-name              (notmuch-user-name)
+;; 	mail-envelope-from          'header
+;; 	mail-specify-envelope-from  t))
 
 ;;
 ;; Magit
@@ -395,13 +408,19 @@
   :bind ([f6] . magit-status)
   :config
   (setq magit-display-buffer-function (lambda (buffer)
-					(display-buffer buffer '(display-buffer-same-window))))
+					(display-buffer buffer '(display-buffer-same-window)))))
 
-  ;;
-  ;; Handy packages
-  ;;
+;;
+;; Man pages
+;;
 
-  (use-package try             :ensure t))
+(setq Man-notify-method 'pushy)
+
+;;
+;; Handy packages
+;;
+
+(use-package try             :ensure t)
 (use-package rainbow-mode    :ensure t)
 (use-package which-key       :ensure t :config (which-key-mode))
 (use-package elpher          :ensure t)
@@ -443,13 +462,7 @@
 
 (load (in-emacs-dir "tools.el"))
 (load (in-emacs-dir "themes.el"))
-(load (in-emacs-dir "private/erc.el"))
-(load (in-emacs-dir "private/elfeed.el"))
+;(load (in-emacs-dir "private/erc.el"))
+;(load (in-emacs-dir "private/elfeed.el"))
 
 (setq custom-file (in-emacs-dir "custom.el"))
-
-;;
-;; xQuartz
-;;
-
-(setenv "DISPLAY" "localhost")

@@ -30,21 +30,28 @@
 ;; Zenburn
 ;;
 
-;(use-package zenburn-theme :ensure t)
+(use-package zenburn-theme :ensure t)
 
-(defun color-theme-zenburn ()
-  (interactive)
+(defun color-theme-zenburn* ()
   (setq zenburn-use-variable-pitch      t
 	zenburn-scale-org-headlines     t
 	zenburn-scale-outline-headlines t
 	zenburn-override-colors-alist   '(("zenburn-green+4" . "#7CB8BB")))
   (load-theme 'zenburn))
 
+(defun color-theme-zenburn ()
+  (interactive)
+  (color-theme-zenburn*))
+
+(defun fix-zenburn-background-color ()
+  (interactive)
+  (set-background-color "#353535"))
+
 ;;
 ;; Plan9
 ;;
 
-;(use-package plan9-theme :ensure t)
+(use-package plan9-theme :ensure t)
 
 (defun color-theme-plan9 ()
   (interactive)
@@ -52,12 +59,6 @@
   (set-face-foreground 'font-lock-constant-face "#0287c8")
   (set-face-bold 'font-lock-constant-face nil)
   (set-face-bold 'font-lock-type-face nil))
-
-;;
-;; Another variation on Plan9
-;;
-
-;(use-package acme-theme :ensure t)
 
 ;;
 ;; Fix built-in themes

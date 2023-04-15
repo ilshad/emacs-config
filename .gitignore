@@ -3,6 +3,7 @@ games/
 image-dired/
 org-roam.db
 thumbs/
+eln-cache/
 elpa
 private
 eshell
@@ -18,3 +19,4 @@ hackernews
 url
 tramp
 network-security.data
+session.*
