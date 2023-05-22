@@ -65,6 +65,11 @@
 (defun in-emacs-dir (file-name)
   (expand-file-name (concat user-emacs-directory file-name)))
 
+(defun slurp-and-trim (file-name)
+  (with-temp-buffer
+    (insert-file-contents file-name)
+    (string-trim (buffer-string))))
+
 ;;
 ;; Misc global keys
 ;;
@@ -214,6 +219,8 @@
   (require 'company)
   (slime-setup '(slime-fancy slime-company)))
 
+(global-set-key "\C-cs" 'slime-selector)
+
 ;;
 ;; Clojure
 ;;
@@ -269,7 +276,7 @@
       org-src-tab-acts-natively  t
       org-goto-auto-isearch      nil
       org-link-frame-setup       '((file . find-file))
-      org-blank-before-new-entry '((heading . auto) (plain-list-itme . auto))
+      org-blank-before-new-entry '((heading . nil) (plain-list-itme . nil))
       org-startup-folded         t
 
       org-enforce-todo-dependencies     t
@@ -284,28 +291,48 @@
       org-clock-persist     'history
       org-clock-into-drawer 't
 
+      ;; Agenda
+      org-agenda-files (list (in-org-dir "home.org"))
       org-agenda-todo-list-sublevels nil
-      org-refile-targets     '((org-agenda-files . (:maxlevel . 1)))
-      org-default-notes-file (in-org-dir "journal.org")
+      org-agenda-restore-windows-after-quit t
+      org-agenda-window-setup 'current-window
+      org-agenda-tags-column -80
+      org-agenda-prefix-format '((agenda . " %i %-12:c%?-12t% s")
+				 (todo . " %i ")
+                                 (tags . " %i %-12:c")
+				 (search . " %i %-12:c"))
+      org-agenda-category-icon-alist
+      (list (list "Default"
+		  (file-truename "~/.local/opt/icons/org-mode-unicorn.svg")
+		  nil nil :width 20 :ascent 'center))
+      
+      ;; Mix
+      org-refile-targets '((org-agenda-files . (:maxlevel . 1)))
+      org-default-notes-file (in-org-dir "home.org")
 
       ;; Capture
       org-capture-templates
-      '(("j" "Journal" entry
-	 (file+datetree "~/org/journal.org")
-	 "* %? %^g\n")
-
-	("t" "TODO" entry
-	 (file+headline "~/org/home.org" "Inbox")
+      '(("t" "TODO" entry
+	 (file+headline "home.org" "Inbox")
 	 "* TODO %? %^g\n")
 
-	("u" "URL" item
-	 (file+headline "~/org/journal.org" "Links")
+	("r" "TODO: read URL" entry
+	 (file+headline "home.org" "Inbox")
+	 "* TODO [[%^{URL}][%^{Title}]] %^g\n")
+
+	("u" "Link: URL" item
+	 (file+headline "home.org" "Links")
 	 "[[%^{URL}][%^{Title}]]")
 
-	("r" "Read" item
-	 (file+headline "~/org/journal.org" "Read")
-	 "[[%^{URL}]]")))
+	("j" "Journal entry" entry
+	 (file+datetree "home.org")
+	 "* %? %^g\n")))
 
+(defun home ()
+  (interactive)
+  (find-file (in-org-dir "home.org")))
+
+(global-set-key "\C-ch" 'home)
 (global-set-key "\C-ca" 'org-agenda)
 (global-set-key "\C-cb" 'org-switchb)
 (global-set-key "\C-cc" 'org-capture)
@@ -318,27 +345,12 @@
   :custom (org-superstar-special-todo-items t)
   :init   (add-hook 'org-mode-hook (lambda () (org-superstar-mode +1))))
 
-(defun home ()        (interactive) (find-file (in-org-dir "home.org")))
-(defun journal ()     (interactive) (find-file (in-org-dir "journal.org")))
-(defun projects ()    (interactive) (find-file (in-org-dir "projects.org")))
-(defun investments () (interactive) (find-file (in-org-dir "investments.org")))
-
 (use-package org-roam
   :ensure t
   :init (setq org-roam-v2-ack t)
   :custom
   (org-roam-directory (file-truename "~/org/roam"))
   (org-roam-completion-everywhere t)
-  (org-roam-capture-templates
-   '(("d" "default" plain "%?"
-      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-			 "#+title: ${title}\n")
-      :unnarrowed t)
-     ("p" "project" plain
-      (file "~/org/roam/templates/project.org")
-      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-			 "#+title: ${title}\n#+filetags: project")
-      :unnarrowed t)))
   (org-roam-node-display-template "${title:60} ${tags}")
   :bind (("C-c n f" . org-roam-node-find)
 	 ("C-c n i" . org-roam-node-insert)
@@ -411,6 +423,18 @@
 					(display-buffer buffer '(display-buffer-same-window)))))
 
 ;;
+;; Containers
+;;
+
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+
+(use-package dockerfile-mode :ensure t)
+(use-package docker-tramp :ensure t
+  :custom
+  (docker-tramp-docker-executable "podman")
+  (docker-tramp-use-names t))
+
+;;
 ;; Man pages
 ;;
 
@@ -431,7 +455,6 @@
 ;;
 
 (use-package bnf-mode        :ensure t)
-(use-package dockerfile-mode :ensure t)
 (use-package markdown-mode   :ensure t :mode (("\\.md\\'"  . gfm-mode)))
 (use-package yaml-mode       :ensure t :mode (("\\.yml\\'" . yaml-mode)))
 (use-package ttl-mode        :ensure t :mode (("\\.ttl\\'" . ttl-mode)))
@@ -452,9 +475,26 @@
 		       (face-foreground 'font-lock-constant-face)))
 
 
-(use-package doom-modeline
+;(use-package doom-modeline
+;  :ensure t
+;  :hook (after-init . doom-modeline-mode))
+
+;;
+;; Nyxt browser
+;;
+
+(setq browse-url-browser-function 'browse-url-generic
+      browse-url-generic-program "/opt/nyxt/usr/local/bin/nyxt")
+
+;;
+;; AI
+;;
+
+(use-package gptel
   :ensure t
-  :hook (after-init . doom-modeline-mode))
+  :config
+  (setq gptel-api-key (slurp-and-trim (in-emacs-dir "private/openai-key"))
+	gptel-default-mode 'org-mode))
 
 ;;
 ;; Manage ~/.emacs.d directory structure
@@ -466,3 +506,4 @@
 ;(load (in-emacs-dir "private/elfeed.el"))
 
 (setq custom-file (in-emacs-dir "custom.el"))
+(load custom-file)
