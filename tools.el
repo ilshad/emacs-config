@@ -19,7 +19,7 @@
 		    ((numberp (cdr alpha)) (cdr alpha))
 		    ((numberp (cadr alpha)) (cadr alpha)))
 	      100)
-	 '(80 . 60) '(100 . 100)))))
+	 '(90 . 60) '(100 . 100)))))
 
 (defun reset-frame ()
   (interactive)
@@ -51,8 +51,8 @@
 
      ;; Laptop
      ((= width 1920)
-      ;(set-frame-position nil 960 50)
       (set-frame-position nil 965 20)
+      ;(set-frame-position nil 965 55)
       (set-frame-size nil 85 (if menu-bar-mode 46 47)))
 
      ;; Laptop
@@ -75,14 +75,6 @@
 		   (float average-price))
 		100)
 	     (* price quantity))))
-
-;;
-;; System
-;;
-
-(defun tmp-dir ()
-  (interactive)
-  (dired "/var/folders/pl/cq6qq99s79q14mspf_kt7ncc0000gn/T/"))
 
 ;;
 ;; ANSI Colors

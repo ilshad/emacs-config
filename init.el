@@ -17,9 +17,9 @@
    ((= width 1920)
     (setq initial-frame-alist
 	  '((tool-bar-lines . 0)
-	    ;(top . 50) (left . 960)
-	    (top . 20) (left . 965)
-	    (width . 85) (height . 47)))
+	    (top . 20) (left . 965) (width . 85) (height . 47)
+            ;(top . 55) (left . 965) (width . 85) (height . 47)
+	    ))
     (add-to-list 'default-frame-alist
 		 '(font . "DejaVu Sans Mono-14")))
 
@@ -53,7 +53,8 @@
 
 (setq scroll-margin                   10
       scroll-conservatively           50
-      scroll-preserve-screen-position t)
+      scroll-preserve-screen-position t
+      fast-but-imprecise-scrolling    nil)
 
 ;(global-set-key (kbd "M-n") 'scroll-up-line)
 ;(global-set-key (kbd "M-p") 'scroll-down-line)
@@ -90,6 +91,7 @@
 (global-set-key (kbd "M-m") (lambda () (interactive) (dired-jump)))
 (eval-after-load "dired" '(require 'dired-x))
 (put 'dired-find-alternate-file 'disabled nil)
+(setq dired-kill-when-opening-new-dired-buffer t)
 
 (add-hook 'dired-mode-hook
 	  (lambda () (dired-omit-mode t)))
@@ -132,6 +134,10 @@
 ;; Helm
 ;;
 
+(use-package all-the-icons
+  :ensure t
+  :if (display-grayscale-p))
+
 (use-package helm
   :ensure t
   :bind (("M-x"     . helm-M-x)
@@ -147,6 +153,7 @@
 	helm-ff-search-library-in-sexp        t
 	helm-ff-file-name-history-use-recentf t
 	helm-ff-skip-boring-files             t
+        helm-ff-icon-mode                     t
 	helm-allow-mouse                      t
 	helm-buffers-truncate-lines           t)
   (helm-mode 1))
@@ -202,7 +209,7 @@
 	slime-complete-symbol-function  'slime-fuzzy-complete-symbol
 	slime-fuzzy-completion-in-place t)
 
-  (setq common-lisp-hyperspec-root "file:///home/ilshad/Read/HyperSpec-7-0/HyperSpec/")
+  (setq common-lisp-hyperspec-root "file:///home/ilshad/read/HyperSpec-7-0/HyperSpec/")
 
   (add-hook 'slime-repl-mode-hook
 	    (lambda ()
@@ -220,6 +227,12 @@
   (slime-setup '(slime-fancy slime-company)))
 
 (global-set-key "\C-cs" 'slime-selector)
+
+(use-package slime-repl-ansi-color)
+
+(defun quicklisp ()
+  (interactive)
+  (helm-find-files-1 "~/quicklisp/dists/quicklisp/software/"))
 
 ;;
 ;; Clojure
@@ -253,12 +266,7 @@
  partial apply into repeatedly
 
  ;; Datomic
- d/transact d/pull
-
- ;; legacy Om stuff
- render render-state init-state
- om/set-state! om/update-state!
- dom/div dom/select)
+ d/transact d/pull)
 
 ;;
 ;; Org Mode
@@ -281,7 +289,19 @@
 
       org-enforce-todo-dependencies     t
       org-fast-tag-selection-single-key t
-      org-tags-column                   -60
+
+      ;; Edit
+      org-auto-align-tags nil
+      org-tags-column 0
+      ;org-tags-column                   -60
+      org-catch-invisible-edits 'show-and-error
+      org-special-ctrl-a/e t
+      org-insert-heading-respect-content t
+
+      ;; Styling
+      org-hide-emphasis-markers t
+      org-pretty-entities t
+      org-ellipsis "..."
 
       ;; Source code blocks
       org-confirm-babel-evaluate       nil
@@ -291,21 +311,30 @@
       org-clock-persist     'history
       org-clock-into-drawer 't
 
-      ;; Agenda
+      ;; Agenda behavior
       org-agenda-files (list (in-org-dir "home.org"))
       org-agenda-todo-list-sublevels nil
       org-agenda-restore-windows-after-quit t
       org-agenda-window-setup 'current-window
-      org-agenda-tags-column -80
       org-agenda-prefix-format '((agenda . " %i %-12:c%?-12t% s")
 				 (todo . " %i ")
                                  (tags . " %i %-12:c")
 				 (search . " %i %-12:c"))
       org-agenda-category-icon-alist
       (list (list "Default"
-		  (file-truename "~/.local/opt/icons/org-mode-unicorn.svg")
-		  nil nil :width 20 :ascent 'center))
-      
+       		  (file-truename "~/.local/share/icons/org-mode-unicorn.svg")
+       		  nil nil :width 20 :ascent 'center))
+
+      ;; Agenda styling
+      ;org-agenda-tags-column 0
+      org-agenda-tags-column -80
+      org-agenda-block-separator ?─
+      org-agenda-time-grid '((daily today require-timed)
+			     (800 1000 1200 1400 1600 1800 2000)
+			     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+      org-agenda-current-time-string
+      "⭠ now ─────────────────────────────────────────────────"
+
       ;; Mix
       org-refile-targets '((org-agenda-files . (:maxlevel . 1)))
       org-default-notes-file (in-org-dir "home.org")
@@ -316,13 +345,17 @@
 	 (file+headline "home.org" "Inbox")
 	 "* TODO %? %^g\n")
 
-	("r" "TODO: read URL" entry
+	("r" "TODO: read" entry
 	 (file+headline "home.org" "Inbox")
 	 "* TODO [[%^{URL}][%^{Title}]] %^g\n")
 
 	("u" "Link: URL" item
 	 (file+headline "home.org" "Links")
 	 "[[%^{URL}][%^{Title}]]")
+
+	("i" "Idea" entry
+	 (file+headline "home.org" "Ideas")
+	 "* %? %^g\n")
 
 	("j" "Journal entry" entry
 	 (file+datetree "home.org")
@@ -340,10 +373,16 @@
 
 (org-clock-persistence-insinuate)
 
-(use-package org-superstar
+(use-package org-modern
   :ensure t
-  :custom (org-superstar-special-todo-items t)
-  :init   (add-hook 'org-mode-hook (lambda () (org-superstar-mode +1))))
+  :init
+  (add-hook 'org-mode-hook #'org-modern-mode)
+  (add-hook 'org-agenda-finalize-hook #'org-modern-agenda))
+
+;; (use-package org-superstar
+;;   :ensure t
+;;   :custom (org-superstar-special-todo-items t)
+;;   :init   (add-hook 'org-mode-hook (lambda () (org-superstar-mode +1))))
 
 (use-package org-roam
   :ensure t
@@ -365,6 +404,12 @@
   (org-roam-setup)
   (org-roam-db-autosync-mode)
   (require 'org-roam-dailies))
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (lisp . t)
+   (shell . t)))
 
 ;;
 ;; Email
@@ -449,6 +494,7 @@
 (use-package which-key       :ensure t :config (which-key-mode))
 (use-package elpher          :ensure t)
 (use-package dictionary      :ensure t)
+(use-package sicp            :ensure t)
 
 ;;
 ;; Various formats
@@ -479,12 +525,13 @@
 ;  :ensure t
 ;  :hook (after-init . doom-modeline-mode))
 
-;;
+
+
 ;; Nyxt browser
 ;;
 
 (setq browse-url-browser-function 'browse-url-generic
-      browse-url-generic-program "/opt/nyxt/usr/local/bin/nyxt")
+      browse-url-generic-program "nyxt")
 
 ;;
 ;; AI
@@ -507,3 +554,16 @@
 
 (setq custom-file (in-emacs-dir "custom.el"))
 (load custom-file)
+
+;; Add frame borders and window dividers
+;; (modify-all-frames-parameters
+;;  '((right-divider-width . 40)
+;;    (internal-border-width . 40)))
+
+;; (dolist (face '(window-divider
+;;                 window-divider-first-pixel
+;;                 window-divider-last-pixel))
+;;   (face-spec-reset-face face)
+;;   (set-face-foreground face (face-attribute 'default :background)))
+
+;; (set-face-background 'fringe (face-attribute 'default :background))

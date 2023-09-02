@@ -32,20 +32,14 @@
 
 (use-package zenburn-theme :ensure t)
 
-(defun color-theme-zenburn* ()
+(defun color-theme-zenburn ()
+  (interactive)
   (setq zenburn-use-variable-pitch      t
 	zenburn-scale-org-headlines     t
 	zenburn-scale-outline-headlines t
-	zenburn-override-colors-alist   '(("zenburn-green+4" . "#7CB8BB")))
+        zenburn-override-colors-alist   '(("zenburn-green+4" . "#7CB8BB")
+					  ("zenburn-bg" . "#353535")))
   (load-theme 'zenburn))
-
-(defun color-theme-zenburn ()
-  (interactive)
-  (color-theme-zenburn*))
-
-(defun fix-zenburn-background-color ()
-  (interactive)
-  (set-background-color "#353535"))
 
 ;;
 ;; Plan9
