@@ -20,3 +20,4 @@ url
 tramp
 network-security.data
 session.*
+*.sqlite

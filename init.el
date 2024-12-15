@@ -7,29 +7,34 @@
 (scroll-bar-mode -1)
 (blink-cursor-mode -1)
 (set-fringe-mode 0)
+(winner-mode 1)
+(context-menu-mode 1)
+(repeat-mode 1)
 
 (setq inhibit-startup-message t
       calendar-week-start-day 1
-      split-width-threshold   110)
+      split-width-threshold   150)
 
-(let ((width (display-pixel-width)))
-  (cond
-   ((= width 1920)
-    (setq initial-frame-alist
-	  '((tool-bar-lines . 0)
-	    (top . 20) (left . 965) (width . 85) (height . 47)
-            ;(top . 55) (left . 965) (width . 85) (height . 47)
-	    ))
-    (add-to-list 'default-frame-alist
-		 '(font . "DejaVu Sans Mono-14")))
+;(set-face-attribute 'default nil :font "DejaVu Sans Mono" :height 150)
 
-   ((= width 2240)
-    (setq initial-frame-alist
-	  '((tool-bar-lines . 0)
-	    (top . 50) (left . 1100)
-	    (width . 80) (height . 45)))
-    (add-to-list 'default-frame-alist
-		 '(font . "DejaVu Sans Mono-17")))))
+;; (let ((width (display-pixel-width)))
+;;   (cond
+;;    ((= width 1920)
+;;     (setq initial-frame-alist
+;; 	  '((tool-bar-lines . 0)
+;; 	    (top . 20) (left . 965) (width . 85) (height . 47)
+;;             ;(top . 55) (left . 965) (width . 85) (height . 47)
+;; 	    ))
+;;     ;(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-14"))
+;;     )
+
+;;    ((= width 2560)
+;;     (setq initial-frame-alist
+;; 	  '((tool-bar-lines . 0)
+;; 	    (top . 20) (left . 840)
+;; 	    (width . 170) (height . 63)))
+;;     ;(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-14"))
+;;     )))
 
 ;(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 ;(add-to-list 'default-frame-alist '(ns-appearance . dark))
@@ -77,6 +82,7 @@
 
 (global-set-key (kbd "C-q") 'kill-buffer)
 (global-set-key (kbd "M-'") 'eshell)
+(global-set-key (kbd "C-M-s") 'isearch-forward-thing-at-point)
 
 (require 'windmove)
 
@@ -202,14 +208,14 @@
   (setq slime-lisp-implementations
 	'((sbcl ("/usr/local/bin/sbcl") :coding-system utf-8-unix)))
 
-  (setq slime-contribs '(slime-fancy slime-cl-indent))
+  (setq slime-contribs '(slime-fancy slime-cl-indent slime-asdf))
 
   (setq slime-default-lisp              'sbcl
 	slime-net-coding-system         'utf-8-unix
 	slime-complete-symbol-function  'slime-fuzzy-complete-symbol
 	slime-fuzzy-completion-in-place t)
 
-  (setq common-lisp-hyperspec-root "file:///home/ilshad/read/HyperSpec-7-0/HyperSpec/")
+  (setq common-lisp-hyperspec-root "file:///home/ilshad/read/lisp/HyperSpec-7-0/HyperSpec/")
 
   (add-hook 'slime-repl-mode-hook
 	    (lambda ()
@@ -224,11 +230,14 @@
   :ensure t
   :init
   (require 'company)
-  (slime-setup '(slime-fancy slime-company)))
+  (slime-setup '(slime-fancy
+		 slime-company
+		 slime-cl-indent
+		 slime-asdf)))
 
 (global-set-key "\C-cs" 'slime-selector)
 
-(use-package slime-repl-ansi-color)
+;(use-package slime-repl-ansi-color)
 
 (defun quicklisp ()
   (interactive)
@@ -260,7 +269,7 @@
 (my/clojure-defn-indents
  swap! reset!
  assoc assoc-in update update-in get-in dissoc
- map filter reduce reduce-kv interpose
+ map filter remove reduce reduce-kv interpose
  mapv filterv
  map-indexed mapcat
  partial apply into repeatedly
@@ -284,6 +293,7 @@
       org-src-tab-acts-natively  t
       org-goto-auto-isearch      nil
       org-link-frame-setup       '((file . find-file))
+      org-return-follows-link    t
       org-blank-before-new-entry '((heading . nil) (plain-list-itme . nil))
       org-startup-folded         t
 
@@ -361,6 +371,15 @@
 	 (file+datetree "home.org")
 	 "* %? %^g\n")))
 
+(with-eval-after-load "org"
+  (define-key org-mode-map (kbd "C-c t") #'org-todo))
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (lisp . t)
+   (shell . t)))
+
 (defun home ()
   (interactive)
   (find-file (in-org-dir "home.org")))
@@ -404,12 +423,6 @@
   (org-roam-setup)
   (org-roam-db-autosync-mode)
   (require 'org-roam-dailies))
-
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((emacs-lisp . t)
-   (lisp . t)
-   (shell . t)))
 
 ;;
 ;; Email
@@ -463,9 +476,17 @@
 (use-package magit
   :ensure t
   :bind ([f6] . magit-status)
+  ;; :config
+  ;; (setq magit-display-buffer-function
+  ;; 	(lambda (buffer)
+  ;; 	  (display-buffer buffer '(display-buffer-same-window))))
+  )
+
+(use-package forge
+  :after magit
+  :bind (([f7] . 'forge-list-issues))
   :config
-  (setq magit-display-buffer-function (lambda (buffer)
-					(display-buffer buffer '(display-buffer-same-window)))))
+  (setq forge-topic-list-limit '(200 . -1)))
 
 ;;
 ;; Containers
@@ -473,11 +494,12 @@
 
 (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
 
-(use-package dockerfile-mode :ensure t)
-(use-package docker-tramp :ensure t
-  :custom
-  (docker-tramp-docker-executable "podman")
-  (docker-tramp-use-names t))
+;(use-package dockerfile-mode :ensure t)
+
+;; (use-package docker-tramp :ensure t
+;;   :custom
+;;   (docker-tramp-docker-executable "podman")
+;;   (docker-tramp-use-names t))
 
 ;;
 ;; Man pages
@@ -486,11 +508,19 @@
 (setq Man-notify-method 'pushy)
 
 ;;
+;; Doc View
+;;
+
+(setq doc-view-imenu-enabled t
+      doc-view-continuous t)
+
+;;
 ;; Handy packages
 ;;
 
 (use-package try             :ensure t)
 (use-package rainbow-mode    :ensure t)
+(use-package centered-window :ensure t)
 (use-package which-key       :ensure t :config (which-key-mode))
 (use-package elpher          :ensure t)
 (use-package dictionary      :ensure t)
@@ -520,18 +550,31 @@
   (set-face-foreground 'font-lock-type-face
 		       (face-foreground 'font-lock-constant-face)))
 
+(setq modus-themes-headings '((1 . (overline background variable-pitch 1.3))
+			      (2 . (rainbow overline 1.1))
+			      (t . (semibold)))
+      modus-themes-org-agenda '((header-block . (variable-pitch 1.3))
+				(header-date . (grayscale workaholic bold-today 1.1))
+				(event . (accented varied))
+				(scheduled . uniform)
+				(habit . traffic-light))
+      modus-themes-org-blocks 'gray-background
+      modus-themes-italic-constructs t
+      modus-themes-bold-constructs nil
+      modus-themes-syntax '(faint)
+      modus-themes-links '(background no-underline faint)
+      modus-themes-mode-line '(borderless)
+      modus-themes-markup '(background))
 
-;(use-package doom-modeline
-;  :ensure t
-;  :hook (after-init . doom-modeline-mode))
-
-
-
-;; Nyxt browser
+;;
+;; Browser
 ;;
 
 (setq browse-url-browser-function 'browse-url-generic
-      browse-url-generic-program "nyxt")
+      ;browse-url-browser-function 'browse-url-default-browser
+      browse-url-generic-program "flatpak"
+      browse-url-generic-args '("run" "engineer.atlas.Nyxt"))
+
 
 ;;
 ;; AI
@@ -547,10 +590,14 @@
 ;; Manage ~/.emacs.d directory structure
 ;;
 
+(setq auth-sources (list (in-emacs-dir "private/authinfo")))
+
 (load (in-emacs-dir "tools.el"))
 (load (in-emacs-dir "themes.el"))
 ;(load (in-emacs-dir "private/erc.el"))
 ;(load (in-emacs-dir "private/elfeed.el"))
+
+(font-size-toggle)
 
 (setq custom-file (in-emacs-dir "custom.el"))
 (load custom-file)

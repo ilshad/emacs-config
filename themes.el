@@ -12,6 +12,19 @@
   (fix-color-theme-leuven))
 
 ;;
+;; Leuven dark
+;;
+
+(defun fix-color-theme-dark-leuven ()
+  (set-face-foreground 'font-lock-type-face "#34c8d8")
+  (set-face-foreground 'font-lock-constant-face "#34c8d8"))
+
+(defun color-theme-dark-leuven ()
+  (interactive)
+  (load-theme 'leuven-dark)
+  (fix-color-theme-dark-leuven))
+
+;;
 ;; Nord
 ;;
 
@@ -45,6 +58,16 @@
 ;; Plan9
 ;;
 
+(defun color-mode-line-plan9 ()
+  (interactive)
+  (set-face-background 'mode-line "#007777")
+  (set-face-foreground 'mode-line "#ffffe8")
+  (set-face-foreground 'mode-line-buffer-id "#ffffe8")
+  ;(set-face-background 'mode-line-inactive "#007777")
+  ;(set-face-background 'mode-line-inactive "#888838")
+  (set-face-background 'mode-line-inactive "#988D6D")
+  )
+
 (use-package plan9-theme :ensure t)
 
 (defun color-theme-plan9 ()
@@ -52,7 +75,8 @@
   (load-theme 'plan9)
   (set-face-foreground 'font-lock-constant-face "#0287c8")
   (set-face-bold 'font-lock-constant-face nil)
-  (set-face-bold 'font-lock-type-face nil))
+  (set-face-bold 'font-lock-type-face nil)
+  (color-mode-line-plan9))
 
 ;;
 ;; Fix built-in themes

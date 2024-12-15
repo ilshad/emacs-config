@@ -2,6 +2,25 @@
 ;; UI
 ;;
 
+;; (defun fix-font-size ()
+;;   (interactive)
+;;   ;(set-frame-font "DejaVu Sans Mono Book")
+;;   ;(set-frame-font "DejaVu Sans Mono-14")
+;;   ;(set-frame-font "Liberation Mono-14")
+;;   (set-frame-font "-GOOG-Noto Sans Mono-regular-normal-normal-*-19-*-*-*-*-0-iso10646-1")
+;;   ;(set-frame-font "-PfEd-DejaVu Sans Mono-regular-normal-normal-*-19-*-*-*-m-0-iso10646-1")
+;;   ;(set-frame-font "DejaVu Sans Mono:pixelsize=19:foundry=PfEd:weight=regular:slant=normal:width=normal:spacing=50:scalable=true")
+;;   )
+
+(setq font-size-toggled-p nil)
+
+(defun font-size-toggle ()
+  (interactive)
+  (set-frame-font (if font-size-toggled-p
+		      "DejaVu Sans Mono-13"
+		    "DejaVu Sans Mono-14"))
+  (setq font-size-toggled-p (not font-size-toggled-p)))
+
 (setq transparency-started-p nil)
 
 (defun transparency-toggle ()
@@ -31,7 +50,7 @@
     (cond
 
      ;; Monitor + laptop
-     ((= width 4000)
+     ((= width 4480)
       ;(set-frame-position nil -1538 -16)
 
       ;(set-frame-position nil -1538 -500) ; Monitor on left
@@ -41,24 +60,13 @@
 
      ;; Monitor
      ((= width 2560)
-      (set-frame-position nil 1022 38)
-      (set-frame-size nil 168 73))
-
-     ;; Laptop
-     ((= width 1680)
-      (set-frame-position nil 860 47)
-      (set-frame-size nil 80 (if menu-bar-mode 44 45)))
+      (set-frame-position nil 840 20)
+      (set-frame-size nil 170 63))
 
      ;; Laptop
      ((= width 1920)
       (set-frame-position nil 965 20)
-      ;(set-frame-position nil 965 55)
-      (set-frame-size nil 85 (if menu-bar-mode 46 47)))
-
-     ;; Laptop
-     ((= width 2240)
-      (set-frame-position nil 1100 50)
-      (set-frame-size nil 80 (if menu-bar-mode 45 46))))))
+      (set-frame-size nil 85 (if menu-bar-mode 46 47))))))
 
 ;;
 ;; Investments
@@ -83,3 +91,20 @@
 (defun display-ansi-colors ()
   (interactive)
   (ansi-color-apply-on-region (point-min) (point-max)))
+
+;;
+;; Nyxt
+;;
+
+(defun my/nyxt-open-url (url)
+  (defun true (&rest args) 't)
+  (advice-add 'slime-check-version :override #'true)
+  (slime-connect "localhost" "4006")
+  (sleep-for 1)
+  (advice-remove 'slime-check-version #'true)
+  (if (slime-connected-p)
+      (progn
+	(slime-repl-send-string (format "(buffer-load \"%s\")" url))
+	(slime-disconnect)
+	(kill-buffer "*slime-repl sbcl*"))
+    (error "SLIME is not connected to Nyxt.")))
